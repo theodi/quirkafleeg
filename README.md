@@ -38,3 +38,13 @@ cd quirkafleeg
 ```
 
 If you find any problems (this hasn't been widely tested), please open an issue!
+
+Future
+------
+
+This will probably morph into a Vagrant configuration at some point. This Ruby script is very much an interim measure.
+
+License
+-------
+
+This code is open source under the MIT license. See the LICENSE.md file for full details.
