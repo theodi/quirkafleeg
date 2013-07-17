@@ -29,6 +29,10 @@ Requirements
 Perform a Quirkafleeg!
 ----------------------
 
+*WARNING: THIS WILL PROBABLY BE VERY RUDE TO ANY LOCAL MONGODB OR MYSQL YOU HAVE INSTALLED*
+
+*TREAD CAREFULLY IF YOU HAVE DATA YOU ARE AFRAID OF LOSING*
+
 To get all your gov.uk ducks in a row, just:
 
 ```
