@@ -1,0 +1,5 @@
+export GOVUK_APP_DOMAIN="dev"
+export DEV_DOMAIN="dev"
+export GDS_SSO_STRATEGY=real
+export STATIC_DEV="http://static.dev"
+export GOVUK_ASSET_ROOT="static.dev"
