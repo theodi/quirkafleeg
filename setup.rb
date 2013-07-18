@@ -120,7 +120,7 @@ Dir.chdir("signonotron2") do
   puts "\x1B[32m"
   puts "We'll generate a couple of sample users for you. You can add more by doing something like:"
   puts "\x1B[31m"
-  puts "$ cd signonotron"
+  puts "$ cd signonotron2"
   puts "$ rvm use .."
   puts "$ bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
   puts "\x1B[0m"
