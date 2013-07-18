@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require 'rvm'
 
 # This script will create a fully-working gov.uk-style setup locally
 
@@ -58,12 +59,13 @@ projects.each_pair do |project, servername|
   system "ln -sf #{pwd}/#{project} ~/.pow/#{servername}"
 
   Dir.chdir(project.to_s) do
+    RVM.use! '..'
     system "bundle"
   end
     
 end
 
-system "ln -sf #{pwd}/www ~/.pow/private-frontend"
+system "ln -sf #{pwd}/frontend ~/.pow/private-frontend"
 
 puts "\x1B[32m"
 puts "Now we need to generate application tokens in the signonotron."
@@ -78,6 +80,7 @@ def oauth_secret(output)
 end
 
 Dir.chdir("signonotron2") do
+  RVM.use! '..'
 
   puts "\x1B[32m"
   puts "Setting up signonotron database..."
@@ -117,7 +120,7 @@ Dir.chdir("signonotron2") do
   puts "\x1B[32m"
   puts "We'll generate a couple of sample users for you. You can add more by doing something like:"
   puts "\x1B[31m"
-  puts "$ cd signonotron"
+  puts "$ cd signonotron2"
   puts "$ rvm use .."
   puts "$ bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
   puts "\x1B[0m"
