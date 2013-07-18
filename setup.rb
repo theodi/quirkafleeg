@@ -65,7 +65,7 @@ projects.each_pair do |project, servername|
     
 end
 
-system "ln -sf #{pwd}/www ~/.pow/private-frontend"
+system "ln -sf #{pwd}/frontend ~/.pow/private-frontend"
 
 puts "\x1B[32m"
 puts "Now we need to generate application tokens in the signonotron."
