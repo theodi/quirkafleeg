@@ -58,6 +58,7 @@ projects.each_pair do |project, servername|
   system "ln -sf #{pwd}/#{project} ~/.pow/#{servername}"
 
   Dir.chdir(project.to_s) do
+    system "rvm use .."
     system "bundle"
   end
     
