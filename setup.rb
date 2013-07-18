@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require 'rvm'
 
 # This script will create a fully-working gov.uk-style setup locally
 
@@ -58,6 +59,7 @@ projects.each_pair do |project, servername|
   system "ln -sf #{pwd}/#{project} ~/.pow/#{servername}"
 
   Dir.chdir(project.to_s) do
+    RVM.use! '..'
     system "bundle"
   end
     
@@ -78,6 +80,7 @@ def oauth_secret(output)
 end
 
 Dir.chdir("signonotron2") do
+  RVM.use! '..'
 
   puts "\x1B[32m"
   puts "Setting up signonotron database..."
