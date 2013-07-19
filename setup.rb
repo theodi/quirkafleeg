@@ -54,8 +54,8 @@ projects.each_pair do |project, servername|
   puts "Configuring \x1B[31m#{project}\x1B[32m for use with pow."
   puts "\x1B[0m"
 
-  system "cp powenv #{project}/.powenv"
-  system "cp powrc #{project}/.powrc"
+  system "ln -s powenv #{project}/.powenv"
+  system "ln -s powrc #{project}/.powrc"
   system "ln -sf #{pwd}/#{project} ~/.pow/#{servername}"
 
   Dir.chdir(project.to_s) do
