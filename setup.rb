@@ -48,7 +48,7 @@ projects.each_pair do |project, servername|
   puts "Cloning \x1B[31m#{project}\x1B[32m"
   puts "\x1B[0m"
   
-  system "git clone git://github.com/#{organisation}/#{project}.git"
+  system "git clone git@github.com:#{organisation}/#{project}.git"
 
   puts "\x1B[32m"
   puts "Configuring \x1B[31m#{project}\x1B[32m for use with pow."
