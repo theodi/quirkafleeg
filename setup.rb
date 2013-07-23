@@ -10,7 +10,7 @@ projects     = {
   static:            'static',
   panopticon:        'panopticon',
   publisher:         'publisher',
-  govuk_content_api: 'contentapi',
+  content_api:       'contentapi',
   frontend:          'www',
 }
   

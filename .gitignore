@@ -6,3 +6,5 @@
 /static/
 /.DS_Store
 /govuk_content_models/
+/content_api/
+/odi_content_models/
