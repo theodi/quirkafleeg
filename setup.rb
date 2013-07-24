@@ -35,19 +35,15 @@ pwd = `pwd`.strip
 
 projects.each_pair do |project, servername|
 
-  puts "%s %s" % [
-    green("Cloning"),
-    red(project)
-  ]
-
   if not Dir.exists? project.to_s
-    system "git clone git@github.com:#{organisation}/#{project}.git"
 
-#  Dir.chdir(project.to_s) do
-#    RVM.use! `pwd`
-#    system "bundle"
+    puts "%s %s" % [
+      green("Cloning"),
+      red(project)
+    ]
+
+    system "git clone git@github.com:#{organisation}/#{project}.git"
     system "rvm in #{project} do bundle"
-#  end
   end    
 end
 
