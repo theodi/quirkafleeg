@@ -13,50 +13,34 @@ projects     = {
   content_api:       'contentapi',
   frontend:          'www',
 }
+
+def colour text, colour
+  "\x1b[%sm%s\x1b[0m" % [
+    colour,
+    text
+  ]
+end
+
+def red text
+  colour text, "31"
+end
+
+def green text
+  colour text, "32"
+end
   
-puts "\x1B[32m"
-puts "First we're going to install pow to serve the various apps during development."
-puts "You might also find \x1B[31mhttp://anvilformac.com/\x1B[32m useful for managing and restarting"
-puts "these apps."
-puts "\x1B[0m"
-
-system "curl get.pow.cx | sh"
-
-puts "\x1B[32m"
-puts "Right, that's pow installed. Next we need to install and start mongodb."
-puts "\x1B[0m"
-
-system "brew install mongodb"
-system "mongod &"
-
-puts "\x1B[32m"
-puts "We also need MySQL up and running."
-puts "\x1B[0m"
-
-system "brew install mysql"
-system "mysql.server start"
-
-puts "\x1B[32m"
-puts "Next we're going to grab all the actual applications we need."
-puts "\x1B[0m"
+puts green "We're going to grab all the actual applications we need."
 
 pwd = `pwd`.strip
 
 projects.each_pair do |project, servername|
 
-  puts "\x1B[32m"
-  puts "Cloning \x1B[31m#{project}\x1B[32m"
-  puts "\x1B[0m"
+  print "%s %s" % [
+    "Cloning",
+    project
+  ]
   
   system "git clone git@github.com:#{organisation}/#{project}.git"
-
-  puts "\x1B[32m"
-  puts "Configuring \x1B[31m#{project}\x1B[32m for use with pow."
-  puts "\x1B[0m"
-
-  system "ln -s powenv #{project}/.powenv"
-  system "ln -s powrc #{project}/.powrc"
-  system "ln -sf #{pwd}/#{project} ~/.pow/#{servername}"
 
   Dir.chdir(project.to_s) do
     RVM.use! '..'
