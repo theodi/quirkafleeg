@@ -42,12 +42,15 @@ projects.each_pair do |project, servername|
   
   system "git clone git@github.com:#{organisation}/#{project}.git"
 
-  Dir.chdir(project.to_s) do
-    RVM.use! '..'
-    system "bundle"
-  end
+#  Dir.chdir(project.to_s) do
+#    RVM.use! `pwd`
+#    system "bundle"
+  system "rvm in #{project} do bundle"
+#  end
     
 end
+
+exit
 
 system "ln -sf #{pwd}/frontend ~/.pow/private-frontend"
 
@@ -64,7 +67,7 @@ def oauth_secret(output)
 end
 
 Dir.chdir("signonotron2") do
-  RVM.use! '..'
+  RVM.use! '.'
 
   puts "\x1B[32m"
   puts "Setting up signonotron database..."
