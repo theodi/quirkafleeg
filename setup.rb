@@ -35,9 +35,9 @@ pwd = `pwd`.strip
 
 projects.each_pair do |project, servername|
 
-  print "%s %s" % [
-    "Cloning",
-    project
+  puts "%s %s" % [
+    green("Cloning"),
+    red(project)
   ]
   
   system "git clone git@github.com:#{organisation}/#{project}.git"
