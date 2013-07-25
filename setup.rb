@@ -1,7 +1,12 @@
 #!/usr/bin/env ruby
 require 'rvm'
+require 'dotenv'
+require 'erubis'
 
 # This script will create a fully-working gov.uk-style setup locally
+
+`./make_env`
+Dotenv.load './env'
 
 organisation = 'theodi'
 
@@ -11,7 +16,8 @@ projects     = {
   panopticon:        'panopticon',
   publisher:         'publisher',
   content_api:       'contentapi',
-  frontend:          'www',
+  people:            'people',
+  frontend:          'private-frontend'
 }
 
 def colour text, colour
@@ -28,12 +34,37 @@ end
 def green text
   colour text, "32"
 end
+
+def make_vhost project, servername, port
+  template = File.read("templates/vhost.erb")
+  template = Erubis::Eruby.new(template)
+  f = File.open "#{project}/vhost", "w"
+  f.write template.result(
+    :project => project,
+    :servername => servername,
+    :port => port,
+    :domain => ENV['GOVUK_APP_DOMAIN'],
+  )
+  f.close
+
+  command = "sudo rm /etc/nginx/sites-enabled/%s" % [
+    servername
+  ]
+  system command
+
+  command = "sudo ln -sf %s/%s/vhost /etc/nginx/sites-enabled/%s" % [
+    Dir.pwd,
+    project,
+    servername
+  ]
+  system command
+end
   
 puts green "We're going to grab all the actual applications we need."
 
 pwd = `pwd`.strip
 
-port = 9000
+port = 3000
 projects.each_pair do |project, servername|
   if not Dir.exists? project.to_s
     puts "%s %s" % [
@@ -46,7 +77,7 @@ projects.each_pair do |project, servername|
       green("Updating"),
       red(project)
     ]
-    system "cd #{project} && git pull && cd ../"
+    system "cd #{project} && git pull origin master && cd ../"
   end    
   
   puts "%s %s" % [
@@ -55,7 +86,11 @@ projects.each_pair do |project, servername|
   ]
 
   system "rvm in #{project} do bundle"
-  system "ln -sf env #{project}/.env"
+  env_path = "%s/env" % [
+    Dir.pwd,
+  ]
+  system "rm #{project}/.env"
+  system "ln -sf #{env_path} #{project}/.env"
   if File.exists? "%s/Procfile" % [
     project
   ]
@@ -74,6 +109,8 @@ projects.each_pair do |project, servername|
       system command
     end
   end
+
+  make_vhost project, servername, port
 
   port += 1000
 end
@@ -95,10 +132,10 @@ Dir.chdir("signonotron2") do
 
   puts green "Setting up signonotron database..."
 
-  system "mysqladmin -u root create signonotron2"
-  system "mysql -u root < ../db_setup.sql"
+#  system "mysqladmin -u root create signonotron2"
+#  system "mysql -u root < ../db_setup.sql"
 
-  system "RACK_ENV=production rake db:schema:load"
+  system "rake db:schema:load"
   
   puts green "Make signonotron work in dev mode..."
 
@@ -109,10 +146,14 @@ Dir.chdir("signonotron2") do
     red("publisher")
   ]
 
-  str = `rake applications:create name=Publisher description="Content editing" home_uri="http://publisher.dev" redirect_uri="http://publisher.dev/auth/gds/callback"`
-  File.open('../env', 'a') do |f|
-    f << "export PUBLISHER_OAUTH_ID=#{oauth_id(str)}\n"
-    f << "export PUBLISHER_OAUTH_SECRET=#{oauth_secret(str)}\n"
+  begin
+    str = `rake applications:create name=Publisher description="Content editing" home_uri="http://publisher.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://publisher.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback"`
+    File.open('../env', 'a') do |f|
+      f << "PUBLISHER_OAUTH_ID=#{oauth_id(str)}\n"
+      f << "PUBLISHER_OAUTH_SECRET=#{oauth_secret(str)}\n"
+    end
+  rescue
+    nil
   end
   
   puts "%s %s" % [
@@ -120,18 +161,27 @@ Dir.chdir("signonotron2") do
     red("panopticon")
   ]
 
-  str = `rake applications:create name=Panopticon description="Metadata management" home_uri="http://panopticon.dev" redirect_uri="http://panopticon.dev/auth/gds/callback"`
-  File.open('../env', 'a') do |f|
-    f << "export PANOPTICON_OAUTH_ID=#{oauth_id(str)}\n"
-    f << "export PANOPTICON_OAUTH_SECRET=#{oauth_secret(str)}\n"
+  begin
+    str = `rake applications:create name=Panopticon description="Metadata management" home_uri="http://panopticon.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://panopticon.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback"`
+    File.open('../env', 'a') do |f|
+      f << "PANOPTICON_OAUTH_ID=#{oauth_id(str)}\n"
+      f << "PANOPTICON_OAUTH_SECRET=#{oauth_secret(str)}\n"
+    end
+  rescue
+    nil
   end
   
   puts green "We'll generate a couple of sample users for you. You can add more by doing something like:"
   puts red "$ cd signonotron2"
   puts red "$ rvm use ."
-  puts red "$ bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
+  puts red "$ GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
 
-  system "GOVUK_APP_DOMAIN=dev DEV_DOMAIN=dev bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
-  system "GOVUK_APP_DOMAIN=dev DEV_DOMAIN=dev bundle exec rake users:create name='Bob' email=bob@example.com applications=Publisher,Panopticon"
+  system "GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
+  system "GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Bob' email=bob@example.com applications=Publisher,Panopticon"
 end
 
+projects.each_pair do |project, servername|
+  `sudo service #{project} restart`
+end
+
+system "sudo service nginx restart"
