@@ -11,14 +11,16 @@ Dotenv.load './env'
 organisation = 'theodi'
 
 projects     = {
-  'signonotron2' =>    'signon',
-  'static' =>          'static',
-  'panopticon' =>      'panopticon',
-  'publisher' =>       'publisher',
-  'content_api' =>     'contentapi',
-  'people' =>          'people',
-  'frontend' =>        'private-frontend',
-  'frontend-news' =>   'news'
+  'signonotron2' =>     'signon',
+  'static' =>           'static',
+  'panopticon' =>       'panopticon',
+  'publisher' =>        'publisher',
+  'content_api' =>      'contentapi',
+  'people' =>           'people',
+  'frontend' =>         'private-frontend',
+  'frontend-news' =>    'news',
+  'frontend-www' =>     'www',
+  'frontend-courses' => 'courses'
 }
 
 def colour text, colour
