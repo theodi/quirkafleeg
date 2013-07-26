@@ -11,13 +11,14 @@ Dotenv.load './env'
 organisation = 'theodi'
 
 projects     = {
-  signonotron2:      'signon',
-  static:            'static',
-  panopticon:        'panopticon',
-  publisher:         'publisher',
-  content_api:       'contentapi',
-  people:            'people',
-  frontend:          'private-frontend'
+  'signonotron2' =>    'signon',
+  'static' =>          'static',
+  'panopticon' =>      'panopticon',
+  'publisher' =>       'publisher',
+  'content_api' =>     'contentapi',
+  'people' =>          'people',
+  'frontend' =>        'private-frontend',
+  'frontend-news' =>   'news'
 }
 
 def colour text, colour
@@ -35,27 +36,26 @@ def green text
   colour text, "32"
 end
 
-def make_vhost project, servername, port
+def make_vhost ourname, port
   template = File.read("templates/vhost.erb")
   template = Erubis::Eruby.new(template)
-  f = File.open "#{project}/vhost", "w"
+  f = File.open "#{ourname}/vhost", "w"
   f.write template.result(
-    :project => project,
-    :servername => servername,
+    :servername => ourname,
     :port => port,
     :domain => ENV['GOVUK_APP_DOMAIN'],
   )
   f.close
 
-  command = "sudo rm /etc/nginx/sites-enabled/%s" % [
-    servername
+  command = "sudo rm -f /etc/nginx/sites-enabled/%s" % [
+    ourname
   ]
   system command
 
   command = "sudo ln -sf %s/%s/vhost /etc/nginx/sites-enabled/%s" % [
     Dir.pwd,
-    project,
-    servername
+    ourname,
+    ourname
   ]
   system command
 end
@@ -65,44 +65,46 @@ puts green "We're going to grab all the actual applications we need."
 pwd = `pwd`.strip
 
 port = 3000
-projects.each_pair do |project, servername|
-  if not Dir.exists? project.to_s
-    puts "%s %s" % [
+projects.each_pair do |theirname, ourname|
+  if not Dir.exists? ourname.to_s
+    puts "%s %s %s %s" % [
       green("Cloning"),
-      red(project)
+      red(theirname),
+      green("into"),
+      red(ourname)
     ]
-    system "git clone git@github.com:#{organisation}/#{project}.git"
+    system "git clone git@github.com:#{organisation}/#{theirname}.git #{ourname}"
   else
     puts "%s %s" % [
       green("Updating"),
-      red(project)
+      red(ourname)
     ]
-    system "cd #{project} && git pull origin master && cd ../"
+    system "cd #{ourname} && git pull origin master && cd ../"
   end    
   
   puts "%s %s" % [
     green("Bundling"),
-    red(project)
+    red(ourname)
   ]
 
-  system "rvm in #{project} do bundle"
+  system "rvm in #{ourname} do bundle"
   env_path = "%s/env" % [
     Dir.pwd,
   ]
-  system "rm #{project}/.env"
-  system "ln -sf #{env_path} #{project}/.env"
+  system "rm -f #{ourname}/.env"
+  system "ln -sf #{env_path} #{ourname}/.env"
   if File.exists? "%s/Procfile" % [
-    project
+    ourname
   ]
 
     puts "%s %s" % [
       green("Generating upstart scripts for"),
-      red(project)
+      red(ourname)
     ]
    
-    Dir.chdir project.to_s do
+    Dir.chdir ourname.to_s do
       command = "rvm in . do rvmsudo bundle exec foreman export -a %s -u %s -p %d upstart /etc/init" % [
-        project,
+        ourname,
         `whoami`.strip,
         port
       ]
@@ -110,11 +112,23 @@ projects.each_pair do |project, servername|
     end
   end
 
-  make_vhost project, servername, port
+  make_vhost ourname, port
 
   port += 1000
 end
 
+projects.each_pair do |theirname, ourname|
+  puts "%s %s" % [
+    green("Restarting"),
+    red(ourname)
+  ]
+  `sudo service #{ourname} restart`
+end
+
+system "sudo service nginx restart"
+
+# THINGS BEYOND HERE ARE DESTRUCTIVE
+exit
 #system "ln -sf #{pwd}/frontend ~/.pow/private-frontend"
 
 puts green "Now we need to generate application tokens in the signonotron."
@@ -127,7 +141,7 @@ def oauth_secret(output)
   output.match(/config.oauth_secret = '(.*?)'/)[1]
 end
 
-Dir.chdir("signonotron2") do
+Dir.chdir("signon") do
   RVM.use! '.'
 
   puts green "Setting up signonotron database..."
@@ -172,7 +186,7 @@ Dir.chdir("signonotron2") do
   end
   
   puts green "We'll generate a couple of sample users for you. You can add more by doing something like:"
-  puts red "$ cd signonotron2"
+  puts red "$ cd signon"
   puts red "$ rvm use ."
   puts red "$ GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
 
@@ -180,8 +194,8 @@ Dir.chdir("signonotron2") do
   system "GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Bob' email=bob@example.com applications=Publisher,Panopticon"
 end
 
-projects.each_pair do |project, servername|
-  `sudo service #{project} restart`
+projects.each_pair do |theirname, ourname|
+  `sudo service #{ourname} restart`
 end
 
 system "sudo service nginx restart"
