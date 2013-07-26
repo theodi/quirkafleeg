@@ -11,3 +11,6 @@ echo "STATIC_DEV=http://static.${DEV_DOMAIN}" >> ${OUTFILE}
 echo "GOVUK_ASSET_ROOT=static.${DEV_DOMAIN}" >> ${OUTFILE}
 echo "PANOPTICON_USER='api'" >> ${OUTFILE}
 echo "PANOPTICON_PASSWORD='mysuperawesomepassword'" >> ${OUTFILE}
+
+cat ./mandrillcreds >> ${OUTFILE}
+
