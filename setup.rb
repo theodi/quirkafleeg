@@ -164,7 +164,7 @@ Dir.chdir("signon") do
 
   begin
     str = `rake applications:create name=Publisher description="Content editing" home_uri="http://publisher.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://publisher.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback"`
-    File.open('../env', 'a') do |f|
+    File.open('../oauthcreds', 'a') do |f|
       f << "PUBLISHER_OAUTH_ID=#{oauth_id(str)}\n"
       f << "PUBLISHER_OAUTH_SECRET=#{oauth_secret(str)}\n"
     end
@@ -179,7 +179,7 @@ Dir.chdir("signon") do
 
   begin
     str = `rake applications:create name=Panopticon description="Metadata management" home_uri="http://panopticon.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://panopticon.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback"`
-    File.open('../env', 'a') do |f|
+    File.open('../oauthcreds', 'a') do |f|
       f << "PANOPTICON_OAUTH_ID=#{oauth_id(str)}\n"
       f << "PANOPTICON_OAUTH_SECRET=#{oauth_secret(str)}\n"
     end
@@ -187,6 +187,8 @@ Dir.chdir("signon") do
     nil
   end
   
+  `./make_env`
+
   puts green "We'll generate a couple of sample users for you. You can add more by doing something like:"
   puts red "$ cd signon"
   puts red "$ rvm use ."
