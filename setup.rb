@@ -130,7 +130,7 @@ end
 system "sudo service nginx restart"
 
 # THINGS BEYOND HERE ARE DESTRUCTIVE
-exit
+#exit
 #system "ln -sf #{pwd}/frontend ~/.pow/private-frontend"
 
 puts green "Now we need to generate application tokens in the signonotron."
@@ -151,7 +151,7 @@ Dir.chdir("signon") do
 #  system "mysqladmin -u root create signonotron2"
 #  system "mysql -u root < ../db_setup.sql"
 
-  system "rake db:schema:load"
+#  system "rake db:schema:load"
   
   puts green "Make signonotron work in dev mode..."
 
