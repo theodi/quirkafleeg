@@ -52,6 +52,13 @@ def make_vhost ourname, port
       ourname
     ]
     system command
+    # Symlink powrc file to load rvm correctly
+    command = "ln -sf %s/powrc %s/%s/.powrc" % [
+      Dir.pwd,
+      Dir.pwd,
+      ourname
+    ]
+    system command
   else
     template = File.read("templates/vhost.erb")
     template = Erubis::Eruby.new(template)
