@@ -3,6 +3,10 @@ require 'rvm'
 require 'dotenv'
 require 'erubis'
 
+def osx?
+  RUBY_PLATFORM.downcase =~ /darwin/
+end
+
 # This script will create a fully-working gov.uk-style setup locally
 
 `./make_env`
@@ -39,27 +43,38 @@ def green text
 end
 
 def make_vhost ourname, port
-  template = File.read("templates/vhost.erb")
-  template = Erubis::Eruby.new(template)
-  f = File.open "#{ourname}/vhost", "w"
-  f.write template.result(
-    :servername => ourname,
-    :port => port,
-    :domain => ENV['GOVUK_APP_DOMAIN'],
-  )
-  f.close
+  if osx?
+    # Add pow symlink
+    system "rm ~/.pow/#{ourname}"
+    command = "ln -sf %s/%s ~/.pow/%s" % [
+      Dir.pwd,
+      ourname,
+      ourname
+    ]
+    system command
+  else
+    template = File.read("templates/vhost.erb")
+    template = Erubis::Eruby.new(template)
+    f = File.open "#{ourname}/vhost", "w"
+    f.write template.result(
+      :servername => ourname,
+      :port => port,
+      :domain => ENV['GOVUK_APP_DOMAIN'],
+    )
+    f.close
 
-  command = "sudo rm -f /etc/nginx/sites-enabled/%s" % [
-    ourname
-  ]
-  system command
+    command = "sudo rm -f /etc/nginx/sites-enabled/%s" % [
+      ourname
+    ]
+    system command
 
-  command = "sudo ln -sf %s/%s/vhost /etc/nginx/sites-enabled/%s" % [
-    Dir.pwd,
-    ourname,
-    ourname
-  ]
-  system command
+    command = "sudo ln -sf %s/%s/vhost /etc/nginx/sites-enabled/%s" % [
+      Dir.pwd,
+      ourname,
+      ourname
+    ]
+    system command
+  end
 end
   
 puts green "We're going to grab all the actual applications we need."
