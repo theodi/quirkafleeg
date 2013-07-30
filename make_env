@@ -1,7 +1,12 @@
 #!/bin/bash
 
-MY_IP=`/sbin/ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1`
-DOMAIN="${MY_IP}.xip.io"
+if [[ `uname` == 'Darwin' ]]; then
+  DOMAIN="dev"
+else
+  MY_IP=`/sbin/ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1`
+  DOMAIN="${MY_IP}.xip.io"
+fi
+
 OUTFILE=./env
 
 echo "GOVUK_APP_DOMAIN=${DOMAIN}" > ${OUTFILE}
