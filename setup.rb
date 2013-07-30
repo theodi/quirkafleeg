@@ -204,7 +204,13 @@ Dir.chdir("signon") do
 end
 
 projects.each_pair do |theirname, ourname|
-  `sudo service #{ourname} restart`
+  if osx?
+    system "touch #{ourname}/tmp/restart.txt"
+  else
+    `sudo service #{ourname} restart`
+  end
 end
 
-system "sudo service nginx restart"
+unless osx?
+  system "sudo service nginx restart"
+end
