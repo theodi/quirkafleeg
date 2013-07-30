@@ -204,6 +204,7 @@ end
 
 projects.each_pair do |theirname, ourname|
   if osx?
+    system "mkdir -p #{ourname}/tmp"
     system "touch #{ourname}/tmp/restart.txt"
   else
     `sudo service #{ourname} restart`
