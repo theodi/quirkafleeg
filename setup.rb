@@ -196,10 +196,19 @@ Dir.chdir("signon") do
   puts green "We'll generate a couple of sample users for you. You can add more by doing something like:"
   puts red "$ cd signon"
   puts red "$ rvm use ."
-  puts red "$ GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
+  puts red "$ GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Alice' email=alice@example.com applications=#{apps.keys.join(',')}"
 
-  system "GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
-  system "GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Bob' email=bob@example.com applications=Publisher,Panopticon"
+  {
+    'alice' => 'alice@example.com',
+    'bob' => 'bob@example.com',
+  }.each_pair do |name, email|
+    begin
+      system "GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='#{name}' email=#{email} applications=#{apps.keys.join(',')}"
+    rescue
+      nil
+    end
+  end
+  
 end
 
 projects.each_pair do |theirname, ourname|
