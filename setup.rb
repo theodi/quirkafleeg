@@ -134,16 +134,6 @@ projects.each_pair do |theirname, ourname|
   port += 1000
 end
 
-projects.each_pair do |theirname, ourname|
-  puts "%s %s" % [
-    green("Restarting"),
-    red(ourname)
-  ]
-  `sudo service #{ourname} restart`
-end
-
-system "sudo service nginx restart"
-
 # THINGS BEYOND HERE ARE DESTRUCTIVE
 #exit
 #system "ln -sf #{pwd}/frontend ~/.pow/private-frontend"
