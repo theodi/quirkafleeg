@@ -13,5 +13,5 @@ echo "PANOPTICON_USER='api'" >> ${OUTFILE}
 echo "PANOPTICON_PASSWORD='mysuperawesomepassword'" >> ${OUTFILE}
 
 cat ./mandrillcreds >> ${OUTFILE}
-cat ./oauthkeys >> ${OUTFILE}
+cat ./oauthcreds >> ${OUTFILE}
 
