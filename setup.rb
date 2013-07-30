@@ -110,22 +110,25 @@ projects.each_pair do |theirname, ourname|
   ]
   system "rm -f #{ourname}/.env"
   system "ln -sf #{env_path} #{ourname}/.env"
-  if File.exists? "%s/Procfile" % [
-    ourname
-  ]
 
-    puts "%s %s" % [
-      green("Generating upstart scripts for"),
-      red(ourname)
+  unless osx?
+    if File.exists? "%s/Procfile" % [
+      ourname
     ]
-   
-    Dir.chdir ourname.to_s do
-      command = "rvm in . do rvmsudo bundle exec foreman export -a %s -u %s -p %d upstart /etc/init" % [
-        ourname,
-        `whoami`.strip,
-        port
+  
+      puts "%s %s" % [
+        green("Generating upstart scripts for"),
+        red(ourname)
       ]
-      system command
+   
+      Dir.chdir ourname.to_s do
+        command = "rvm in . do rvmsudo bundle exec foreman export -a %s -u %s -p %d upstart /etc/init" % [
+          ourname,
+          `whoami`.strip,
+          port
+        ]
+        system command
+      end
     end
   end
 
