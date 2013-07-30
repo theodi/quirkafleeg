@@ -191,8 +191,6 @@ Dir.chdir("signon") do
 
   end
   
-  `./make_env`
-
   puts green "We'll generate a couple of sample users for you. You can add more by doing something like:"
   puts red "$ cd signon"
   puts red "$ rvm use ."
@@ -210,6 +208,8 @@ Dir.chdir("signon") do
   end
   
 end
+
+`./make_env`
 
 projects.each_pair do |theirname, ourname|
   if osx?
