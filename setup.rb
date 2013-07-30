@@ -155,10 +155,7 @@ Dir.chdir("signon") do
 
   puts green "Setting up signonotron database..."
 
-#  system "mysqladmin -u root create signonotron2"
-#  system "mysql -u root < ../db_setup.sql"
-
-#  system "rake db:schema:load"
+  system "rake db:migrate"
   
   puts green "Make signonotron work in dev mode..."
 
