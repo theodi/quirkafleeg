@@ -19,6 +19,7 @@ projects     = {
   'static' =>           'static',
   'panopticon' =>       'panopticon',
   'publisher' =>        'publisher',
+  'asset-manager' =>    'asset-manager',
   'content_api' =>      'contentapi',
   'people' =>           'people',
   'frontend' =>         'private-frontend',
