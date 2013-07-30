@@ -136,7 +136,6 @@ end
 
 # THINGS BEYOND HERE ARE DESTRUCTIVE
 #exit
-#system "ln -sf #{pwd}/frontend ~/.pow/private-frontend"
 
 puts green "Now we need to generate application tokens in the signonotron."
 
