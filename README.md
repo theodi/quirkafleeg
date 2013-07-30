@@ -15,21 +15,28 @@ It uses:
 * panopticon
 * publisher
 * govuk_content_api
-* frontend
+* various frontend apps
 
 (currently it uses ODI forks for these, but once PRs are accepted it should work with the alphagov version)
 
 Requirements
 ------------
 
-* OSX
+### OSX
+
 * Homebrew
 * Ruby 1.9.3 installed via [RVM](http://rvm.io)
+* Pow installed from [pow.cx](http://pow.cx). [Anvil](http://anvilformac.com) is also useful.
+* MongoDB installed and running: `brew install mongodb; mongod`
+
+### Linux 
+
+* Stuff. Sam knows.
 
 Perform a Quirkafleeg!
 ----------------------
 
-*WARNING: THIS WILL PROBABLY BE VERY RUDE TO ANY LOCAL MONGODB OR MYSQL YOU HAVE INSTALLED*
+*WARNING: THIS WILL PROBABLY BE VERY RUDE TO ANY LOCAL MONGODB YOU HAVE INSTALLED*
 
 *TREAD CAREFULLY IF YOU HAVE DATA YOU ARE AFRAID OF LOSING*
 
