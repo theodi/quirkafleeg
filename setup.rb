@@ -172,6 +172,7 @@ Dir.chdir("signon") do
   apps = {
     'panopticon' => 'metadata management',
     'publisher' => 'content editing',
+    'asset-manager' => 'media uploading',
   }
   apps.each_pair do |app, description|
 
