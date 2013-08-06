@@ -1,17 +1,22 @@
 #!/bin/bash
 
-MY_IP=`/sbin/ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1`
-DEV_DOMAIN="${MY_IP}.xip.io"
+if [[ `uname` == 'Darwin' ]]; then
+  DOMAIN="dev"
+else
+  MY_IP=`/sbin/ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1`
+  DOMAIN="${MY_IP}.xip.io"
+fi
+
 OUTFILE=./env
 
-echo "DEV_DOMAIN=${DEV_DOMAIN}" > ${OUTFILE}
-echo "GOVUK_APP_DOMAIN=${DEV_DOMAIN}" >> ${OUTFILE}
+echo "GOVUK_APP_DOMAIN=${DOMAIN}" > ${OUTFILE}
+echo "DEV_DOMAIN=${DOMAIN}" >> ${OUTFILE}
 echo "GDS_SSO_STRATEGY=real" >> ${OUTFILE}
-echo "STATIC_DEV=http://static.${DEV_DOMAIN}" >> ${OUTFILE}
-echo "GOVUK_ASSET_ROOT=static.${DEV_DOMAIN}" >> ${OUTFILE}
+echo "STATIC_DEV=http://static.${DOMAIN}" >> ${OUTFILE}
+echo "GOVUK_ASSET_ROOT=static.${DOMAIN}" >> ${OUTFILE}
 echo "PANOPTICON_USER='api'" >> ${OUTFILE}
 echo "PANOPTICON_PASSWORD='mysuperawesomepassword'" >> ${OUTFILE}
 
 cat ./mandrillcreds >> ${OUTFILE}
-cat ./oauthkeys >> ${OUTFILE}
+cat ./oauthcreds >> ${OUTFILE}
 

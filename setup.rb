@@ -3,6 +3,10 @@ require 'rvm'
 require 'dotenv'
 require 'erubis'
 
+def osx?
+  RUBY_PLATFORM.downcase =~ /darwin/
+end
+
 # This script will create a fully-working gov.uk-style setup locally
 
 `./make_env`
@@ -39,27 +43,45 @@ def green text
 end
 
 def make_vhost ourname, port
-  template = File.read("templates/vhost.erb")
-  template = Erubis::Eruby.new(template)
-  f = File.open "#{ourname}/vhost", "w"
-  f.write template.result(
-    :servername => ourname,
-    :port => port,
-    :domain => ENV['GOVUK_APP_DOMAIN'],
-  )
-  f.close
+  if osx?
+    # Add pow symlink
+    system "rm ~/.pow/#{ourname}"
+    command = "ln -sf %s/%s ~/.pow/%s" % [
+      Dir.pwd,
+      ourname,
+      ourname
+    ]
+    system command
+    # Symlink powrc file to load rvm correctly
+    command = "ln -sf %s/powrc %s/%s/.powrc" % [
+      Dir.pwd,
+      Dir.pwd,
+      ourname
+    ]
+    system command
+  else
+    template = File.read("templates/vhost.erb")
+    template = Erubis::Eruby.new(template)
+    f = File.open "#{ourname}/vhost", "w"
+    f.write template.result(
+      :servername => ourname,
+      :port => port,
+      :domain => ENV['GOVUK_APP_DOMAIN'],
+    )
+    f.close
 
-  command = "sudo rm -f /etc/nginx/sites-enabled/%s" % [
-    ourname
-  ]
-  system command
+    command = "sudo rm -f /etc/nginx/sites-enabled/%s" % [
+      ourname
+    ]
+    system command
 
-  command = "sudo ln -sf %s/%s/vhost /etc/nginx/sites-enabled/%s" % [
-    Dir.pwd,
-    ourname,
-    ourname
-  ]
-  system command
+    command = "sudo ln -sf %s/%s/vhost /etc/nginx/sites-enabled/%s" % [
+      Dir.pwd,
+      ourname,
+      ourname
+    ]
+    system command
+  end
 end
   
 puts green "We're going to grab all the actual applications we need."
@@ -95,22 +117,25 @@ projects.each_pair do |theirname, ourname|
   ]
   system "rm -f #{ourname}/.env"
   system "ln -sf #{env_path} #{ourname}/.env"
-  if File.exists? "%s/Procfile" % [
-    ourname
-  ]
 
-    puts "%s %s" % [
-      green("Generating upstart scripts for"),
-      red(ourname)
+  unless osx?
+    if File.exists? "%s/Procfile" % [
+      ourname
     ]
-   
-    Dir.chdir ourname.to_s do
-      command = "rvm in . do rvmsudo bundle exec foreman export -a %s -u %s -p %d upstart /etc/init" % [
-        ourname,
-        `whoami`.strip,
-        port
+  
+      puts "%s %s" % [
+        green("Generating upstart scripts for"),
+        red(ourname)
       ]
-      system command
+   
+      Dir.chdir ourname.to_s do
+        command = "rvm in . do rvmsudo bundle exec foreman export -a %s -u %s -p %d upstart /etc/init" % [
+          ourname,
+          `whoami`.strip,
+          port
+        ]
+        system command
+      end
     end
   end
 
@@ -119,19 +144,8 @@ projects.each_pair do |theirname, ourname|
   port += 1000
 end
 
-projects.each_pair do |theirname, ourname|
-  puts "%s %s" % [
-    green("Restarting"),
-    red(ourname)
-  ]
-  `sudo service #{ourname} restart`
-end
-
-system "sudo service nginx restart"
-
 # THINGS BEYOND HERE ARE DESTRUCTIVE
 #exit
-#system "ln -sf #{pwd}/frontend ~/.pow/private-frontend"
 
 puts green "Now we need to generate application tokens in the signonotron."
 
@@ -148,58 +162,67 @@ Dir.chdir("signon") do
 
   puts green "Setting up signonotron database..."
 
-#  system "mysqladmin -u root create signonotron2"
-#  system "mysql -u root < ../db_setup.sql"
-
-#  system "rake db:schema:load"
+  system "rake db:migrate"
   
   puts green "Make signonotron work in dev mode..."
 
   system "bundle exec ./script/make_oauth_work_in_dev"
   
-  puts "%s %s" % [
-    green("Generating application keys for"),
-    red("publisher")
-  ]
+  apps = {
+    'panopticon' => 'metadata management',
+    'publisher' => 'content editing',
+  }
+  apps.each_pair do |app, description|
 
-  begin
-    str = `rake applications:create name=Publisher description="Content editing" home_uri="http://publisher.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://publisher.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback"`
-    File.open('../oauthcreds', 'a') do |f|
-      f << "PUBLISHER_OAUTH_ID=#{oauth_id(str)}\n"
-      f << "PUBLISHER_OAUTH_SECRET=#{oauth_secret(str)}\n"
+    puts "%s %s" % [
+      green("Generating application keys for"),
+      red(app)
+    ]
+
+    begin
+      str = `rake applications:create name=#{app} description="#{description}" home_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback"`
+      File.open('../oauthcreds', 'a') do |f|
+        f << "#{app.upcase.gsub('-','_')}_OAUTH_ID=#{oauth_id(str)}\n"
+        f << "#{app.upcase.gsub('-','_')}_OAUTH_SECRET=#{oauth_secret(str)}\n"
+      end
+    rescue
+      nil
     end
-  rescue
-    nil
+
   end
   
-  puts "%s %s" % [
-    green("Generating application keys for"),
-    red("panopticon")
-  ]
-
-  begin
-    str = `rake applications:create name=Panopticon description="Metadata management" home_uri="http://panopticon.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://panopticon.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback"`
-    File.open('../oauthcreds', 'a') do |f|
-      f << "PANOPTICON_OAUTH_ID=#{oauth_id(str)}\n"
-      f << "PANOPTICON_OAUTH_SECRET=#{oauth_secret(str)}\n"
-    end
-  rescue
-    nil
-  end
-  
-  `./make_env`
-
   puts green "We'll generate a couple of sample users for you. You can add more by doing something like:"
   puts red "$ cd signon"
   puts red "$ rvm use ."
-  puts red "$ GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
+  puts red "$ GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Alice' email=alice@example.com applications=#{apps.keys.join(',')}"
 
-  system "GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
-  system "GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Bob' email=bob@example.com applications=Publisher,Panopticon"
+  {
+    'alice' => 'alice@example.com',
+    'bob' => 'bob@example.com',
+  }.each_pair do |name, email|
+    begin
+      system "GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='#{name}' email=#{email} applications=#{apps.keys.join(',')}"
+    rescue
+      nil
+    end
+  end
+  
 end
+
+`./make_env`
+
+# Seed data in panopticon - tags, really
+system "rvm in panopticon do rake db:seed"
 
 projects.each_pair do |theirname, ourname|
-  `sudo service #{ourname} restart`
+  if osx?
+    system "mkdir -p #{ourname}/tmp"
+    system "touch #{ourname}/tmp/restart.txt"
+  else
+    `sudo service #{ourname} restart`
+  end
 end
 
-system "sudo service nginx restart"
+unless osx?
+  system "sudo service nginx restart"
+end
