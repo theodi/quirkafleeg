@@ -158,6 +158,10 @@ def oauth_secret(output)
   output.match(/config.oauth_secret = '(.*?)'/)[1]
 end
 
+def bearer_token(output)
+  output.match(/Access token: ([0-9a-z]*)/)[1]
+end
+
 Dir.chdir("signon") do
   RVM.use! '.'
 
@@ -173,6 +177,7 @@ Dir.chdir("signon") do
     'panopticon' => 'metadata management',
     'publisher' => 'content editing',
     'asset-manager' => 'media uploading',
+    'contentapi' => 'internal API for content access',
   }
   apps.each_pair do |app, description|
 
@@ -182,10 +187,33 @@ Dir.chdir("signon") do
     ]
 
     begin
-      str = `rake applications:create name=#{app} description="#{description}" home_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback"`
+      str = `rake applications:create name=#{app} description="#{description}" home_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback" supported_permissions=signin`
       File.open('../oauthcreds', 'a') do |f|
         f << "#{app.upcase.gsub('-','_')}_OAUTH_ID=#{oauth_id(str)}\n"
         f << "#{app.upcase.gsub('-','_')}_OAUTH_SECRET=#{oauth_secret(str)}\n"
+      end
+    rescue
+      nil
+    end
+
+  end
+  
+
+  api_clients = [
+    'publisher',
+    'contentapi'
+  ]
+  api_clients.each do |app|
+
+    puts "%s %s" % [
+      green("Generating asset-manager bearer tokens for"),
+      red(app)
+    ]
+
+    begin
+      str = `rake api_clients:create[#{app},"#{app}@example.com",asset-manager,signin]`
+      File.open('../oauthcreds', 'a') do |f|
+        f << "#{app.upcase.gsub('-','_')}_ASSET_MANAGER_BEARER_TOKEN=#{bearer_token(str)}\n"
       end
     rescue
       nil
