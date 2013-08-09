@@ -17,6 +17,7 @@ echo "GOVUK_ASSET_ROOT=static.${DOMAIN}" >> ${OUTFILE}
 echo "PANOPTICON_USER='api'" >> ${OUTFILE}
 echo "PANOPTICON_PASSWORD='mysuperawesomepassword'" >> ${OUTFILE}
 
+cat ./rackspacecreds >> ${OUTFILE}
 cat ./mandrillcreds >> ${OUTFILE}
 cat ./oauthcreds >> ${OUTFILE}
 
