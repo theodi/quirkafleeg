@@ -198,6 +198,7 @@ Dir.chdir("signon") do
 
   end
   
+  # Generate bearer tokens for asset-manager clients
 
   api_clients = [
     'publisher',
@@ -221,6 +222,23 @@ Dir.chdir("signon") do
 
   end
   
+  # Generate bearer tokens for content API clients
+
+  puts green("Generating content-api bearer tokens for frontends")
+
+  begin
+    # Create a frontend application
+    str = `rake applications:create name=frontends description="Front end apps" home_uri="http://frontends.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://frontends.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback" supported_permissions=access_unpublished`
+    # Generate a bearer token for frontends to access contentapi
+    str = `rake api_clients:create[frontends,"frontends@example.com",contentapi,access_unpublished]`
+    File.open('../oauthcreds', 'a') do |f|
+      f << "QUIRKAFLEEG_FRONTEND_CONTENTAPI_BEARER_TOKEN=#{bearer_token(str)}\n"
+    end
+  rescue
+    nil
+  end
+
+
   puts green "We'll generate a couple of sample users for you. You can add more by doing something like:"
   puts red "$ cd signon"
   puts red "$ rvm use ."
