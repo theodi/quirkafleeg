@@ -20,4 +20,5 @@ echo "PANOPTICON_PASSWORD='mysuperawesomepassword'" >> ${OUTFILE}
 cat ./rackspacecreds >> ${OUTFILE}
 cat ./mandrillcreds >> ${OUTFILE}
 cat ./oauthcreds >> ${OUTFILE}
+cat ./juviacreds >> ${OUTFILE}
 
