@@ -9,3 +9,17 @@
 /content_api/
 /odi_content_models/
 .idea/
+/env
+/contentapi/
+/courses/
+/news/
+/people/
+/private-frontend/
+/signon/
+/www/
+oauthcreds
+/mandrillcreds
+/asset-manager/
+
+/rackspacecreds
+/juviacreds

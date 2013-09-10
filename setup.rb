@@ -1,75 +1,154 @@
 #!/usr/bin/env ruby
 require 'rvm'
+require 'dotenv'
+require 'erubis'
+
+def osx?
+  RUBY_PLATFORM.downcase =~ /darwin/
+end
 
 # This script will create a fully-working gov.uk-style setup locally
+
+`./make_env`
+Dotenv.load './env'
 
 organisation = 'theodi'
 
 projects     = {
-  signonotron2:      'signon',
-  static:            'static',
-  panopticon:        'panopticon',
-  publisher:         'publisher',
-  content_api:       'contentapi',
-  frontend:          'www',
+  'signonotron2' =>     'signon',
+  'static' =>           'static',
+  'panopticon' =>       'panopticon',
+  'publisher' =>        'publisher',
+  'asset-manager' =>    'asset-manager',
+  'content_api' =>      'contentapi',
+  'people' =>           'people',
+  'frontend' =>         'private-frontend',
+  'frontend-news' =>    'news',
+  'frontend-www' =>     'www',
+  'frontend-courses' => 'courses'
 }
+
+def colour text, colour
+  "\x1b[%sm%s\x1b[0m" % [
+    colour,
+    text
+  ]
+end
+
+def red text
+  colour text, "31"
+end
+
+def green text
+  colour text, "32"
+end
+
+def make_vhost ourname, port
+  if osx?
+    # Add pow symlink
+    system "rm ~/.pow/#{ourname}"
+    command = "ln -sf %s/%s ~/.pow/%s" % [
+      Dir.pwd,
+      ourname,
+      ourname
+    ]
+    system command
+    # Symlink powrc file to load rvm correctly
+    command = "ln -sf %s/powrc %s/%s/.powrc" % [
+      Dir.pwd,
+      Dir.pwd,
+      ourname
+    ]
+    system command
+  else
+    template = File.read("templates/vhost.erb")
+    template = Erubis::Eruby.new(template)
+    f = File.open "#{ourname}/vhost", "w"
+    f.write template.result(
+      :servername => ourname,
+      :port => port,
+      :domain => ENV['GOVUK_APP_DOMAIN'],
+    )
+    f.close
+
+    command = "sudo rm -f /etc/nginx/sites-enabled/%s" % [
+      ourname
+    ]
+    system command
+
+    command = "sudo ln -sf %s/%s/vhost /etc/nginx/sites-enabled/%s" % [
+      Dir.pwd,
+      ourname,
+      ourname
+    ]
+    system command
+  end
+end
   
-puts "\x1B[32m"
-puts "First we're going to install pow to serve the various apps during development."
-puts "You might also find \x1B[31mhttp://anvilformac.com/\x1B[32m useful for managing and restarting"
-puts "these apps."
-puts "\x1B[0m"
-
-system "curl get.pow.cx | sh"
-
-puts "\x1B[32m"
-puts "Right, that's pow installed. Next we need to install and start mongodb."
-puts "\x1B[0m"
-
-system "brew install mongodb"
-system "mongod &"
-
-puts "\x1B[32m"
-puts "We also need MySQL up and running."
-puts "\x1B[0m"
-
-system "brew install mysql"
-system "mysql.server start"
-
-puts "\x1B[32m"
-puts "Next we're going to grab all the actual applications we need."
-puts "\x1B[0m"
+puts green "We're going to grab all the actual applications we need."
 
 pwd = `pwd`.strip
 
-projects.each_pair do |project, servername|
-
-  puts "\x1B[32m"
-  puts "Cloning \x1B[31m#{project}\x1B[32m"
-  puts "\x1B[0m"
+port = 3000
+projects.each_pair do |theirname, ourname|
+  if not Dir.exists? ourname.to_s
+    puts "%s %s %s %s" % [
+      green("Cloning"),
+      red(theirname),
+      green("into"),
+      red(ourname)
+    ]
+    system "git clone git@github.com:#{organisation}/#{theirname}.git #{ourname}"
+  else
+    puts "%s %s" % [
+      green("Updating"),
+      red(ourname)
+    ]
+    system "cd #{ourname} && git pull origin master && cd ../"
+  end    
   
-  system "git clone git@github.com:#{organisation}/#{project}.git"
+  puts "%s %s" % [
+    green("Bundling"),
+    red(ourname)
+  ]
 
-  puts "\x1B[32m"
-  puts "Configuring \x1B[31m#{project}\x1B[32m for use with pow."
-  puts "\x1B[0m"
+  system "rvm in #{ourname} do bundle"
+  env_path = "%s/env" % [
+    Dir.pwd,
+  ]
+  system "rm -f #{ourname}/.env"
+  system "ln -sf #{env_path} #{ourname}/.env"
 
-  system "ln -s powenv #{project}/.powenv"
-  system "ln -s powrc #{project}/.powrc"
-  system "ln -sf #{pwd}/#{project} ~/.pow/#{servername}"
-
-  Dir.chdir(project.to_s) do
-    RVM.use! '..'
-    system "bundle"
+  unless osx?
+    if File.exists? "%s/Procfile" % [
+      ourname
+    ]
+  
+      puts "%s %s" % [
+        green("Generating upstart scripts for"),
+        red(ourname)
+      ]
+   
+      Dir.chdir ourname.to_s do
+        command = "rvm in . do rvmsudo bundle exec foreman export -a %s -u %s -p %d upstart /etc/init" % [
+          ourname,
+          `whoami`.strip,
+          port
+        ]
+        system command
+      end
+    end
   end
-    
+
+  make_vhost ourname, port
+
+  port += 1000
 end
 
-system "ln -sf #{pwd}/frontend ~/.pow/private-frontend"
+# THINGS BEYOND HERE ARE DESTRUCTIVE
+#exit
 
-puts "\x1B[32m"
-puts "Now we need to generate application tokens in the signonotron."
-puts "\x1B[0m"
+puts green "Now we need to generate application tokens in the signonotron."
 
 def oauth_id(output)
   output.match(/config.oauth_id     = '(.*?)'/)[1]
@@ -79,54 +158,119 @@ def oauth_secret(output)
   output.match(/config.oauth_secret = '(.*?)'/)[1]
 end
 
-Dir.chdir("signonotron2") do
-  RVM.use! '..'
+def bearer_token(output)
+  output.match(/Access token: ([0-9a-z]*)/)[1]
+end
 
-  puts "\x1B[32m"
-  puts "Setting up signonotron database..."
-  puts "\x1B[0m"
+Dir.chdir("signon") do
+  RVM.use! '.'
 
-  system "mysqladmin -u root create signonotron2_development"
-  system "mysql -u root < ../db_setup.sql"
+  puts green "Setting up signonotron database..."
 
-  system "rake db:schema:load"
+  system "rake db:migrate"
   
-  puts "\x1B[32m"
-  puts "Make signonotron work in dev mode..."
-  puts "\x1B[0m"
+  puts green "Make signonotron work in dev mode..."
 
   system "bundle exec ./script/make_oauth_work_in_dev"
   
-  puts "\x1B[32m"
-  puts "Generating application keys for \x1B[31mpublisher\x1B[0m"
-  puts "\x1B[0m"
+  apps = {
+    'panopticon' => 'metadata management',
+    'publisher' => 'content editing',
+    'asset-manager' => 'media uploading',
+    'contentapi' => 'internal API for content access',
+  }
+  apps.each_pair do |app, description|
 
-  str = `rake applications:create name=Publisher description="Content editing" home_uri="http://publisher.dev" redirect_uri="http://publisher.dev/auth/gds/callback"`
-  File.open('../publisher/.powenv', 'a') do |f|
-    f << "export PUBLISHER_OAUTH_ID=#{oauth_id(str)}\n"
-    f << "export PUBLISHER_OAUTH_SECRET=#{oauth_secret(str)}\n"
+    puts "%s %s" % [
+      green("Generating application keys for"),
+      red(app)
+    ]
+
+    begin
+      str = `rake applications:create name=#{app} description="#{description}" home_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback" supported_permissions=signin`
+      File.open('../oauthcreds', 'a') do |f|
+        f << "#{app.upcase.gsub('-','_')}_OAUTH_ID=#{oauth_id(str)}\n"
+        f << "#{app.upcase.gsub('-','_')}_OAUTH_SECRET=#{oauth_secret(str)}\n"
+      end
+    rescue
+      nil
+    end
+
   end
   
-  puts "\x1B[32m"
-  puts "Generating application keys for \x1B[31mpanopticon\x1B[0m"
-  puts "\x1B[0m"
+  # Generate bearer tokens for asset-manager clients
 
-  str = `rake applications:create name=Panopticon description="Metadata management" home_uri="http://panopticon.dev" redirect_uri="http://panopticon.dev/auth/gds/callback"`
-  File.open('../panopticon/.powenv', 'a') do |f|
-    f << "export PANOPTICON_OAUTH_ID=#{oauth_id(str)}\n"
-    f << "export PANOPTICON_OAUTH_SECRET=#{oauth_secret(str)}\n"
+  api_clients = [
+    'publisher',
+    'contentapi'
+  ]
+  api_clients.each do |app|
+
+    puts "%s %s" % [
+      green("Generating asset-manager bearer tokens for"),
+      red(app)
+    ]
+
+    begin
+      str = `rake api_clients:create[#{app},"#{app}@example.com",asset-manager,signin]`
+      File.open('../oauthcreds', 'a') do |f|
+        f << "#{app.upcase.gsub('-','_')}_ASSET_MANAGER_BEARER_TOKEN=#{bearer_token(str)}\n"
+      end
+    rescue
+      nil
+    end
+
   end
   
-  puts "\x1B[32m"
-  puts "We'll generate a couple of sample users for you. You can add more by doing something like:"
-  puts "\x1B[31m"
-  puts "$ cd signonotron2"
-  puts "$ rvm use .."
-  puts "$ bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
-  puts "\x1B[0m"
+  # Generate bearer tokens for content API clients
 
-  system "GOVUK_APP_DOMAIN=dev DEV_DOMAIN=dev bundle exec rake users:create name='Alice' email=alice@example.com applications=Publisher,Panopticon"
-  system "GOVUK_APP_DOMAIN=dev DEV_DOMAIN=dev bundle exec rake users:create name='Bob' email=bob@example.com applications=Publisher,Panopticon"
+  puts green("Generating content-api bearer tokens for frontends")
 
+  begin
+    # Create a frontend application
+    str = `rake applications:create name=frontends description="Front end apps" home_uri="http://frontends.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://frontends.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback" supported_permissions=access_unpublished`
+    # Generate a bearer token for frontends to access contentapi
+    str = `rake api_clients:create[frontends,"frontends@example.com",contentapi,access_unpublished]`
+    File.open('../oauthcreds', 'a') do |f|
+      f << "QUIRKAFLEEG_FRONTEND_CONTENTAPI_BEARER_TOKEN=#{bearer_token(str)}\n"
+    end
+  rescue
+    nil
+  end
+
+
+  puts green "We'll generate a couple of sample users for you. You can add more by doing something like:"
+  puts red "$ cd signon"
+  puts red "$ rvm use ."
+  puts red "$ GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Alice' email=alice@example.com applications=#{apps.keys.join(',')}"
+
+  {
+    'alice' => 'alice@example.com',
+    'bob' => 'bob@example.com',
+  }.each_pair do |name, email|
+    begin
+      system "GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='#{name}' email=#{email} applications=#{apps.keys.join(',')}"
+    rescue
+      nil
+    end
+  end
+  
 end
 
+`./make_env`
+
+# Seed data in panopticon - tags, really
+system "rvm in panopticon do rake db:seed"
+
+projects.each_pair do |theirname, ourname|
+  if osx?
+    system "mkdir -p #{ourname}/tmp"
+    system "touch #{ourname}/tmp/restart.txt"
+  else
+    `sudo service #{ourname} restart`
+  end
+end
+
+unless osx?
+  system "sudo service nginx restart"
+end
