@@ -23,3 +23,6 @@ oauthcreds
 
 /rackspacecreds
 /juviacreds
+
+.chef/
+.vagrant/
