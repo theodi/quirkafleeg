@@ -8,6 +8,7 @@
 /govuk_content_models/
 /content_api/
 /odi_content_models/
+.idea/
 /env
 /contentapi/
 /courses/
@@ -22,3 +23,6 @@ oauthcreds
 
 /rackspacecreds
 /juviacreds
+
+.chef/
+.vagrant/
