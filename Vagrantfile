@@ -5,8 +5,7 @@ require "yaml"
 y = YAML.load File.open ".chef/rackspace_secrets.yaml"
 
 mongo_nodes    = 1
-web_nodes      = 2
-frontend_nodes = 1
+frontend_nodes = 2
 backend_nodes  = 1
 
 Vagrant.configure("2") do |config|
