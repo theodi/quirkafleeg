@@ -28,7 +28,8 @@ exports.each do |type,files|
     else
       db = CONTENT_DB
     end
-    exec "mongoimport --db #{db} --collection #{type} --file #{file}"
+    puts "Importing #{file}..."
+    system "mongoimport --db #{db} --collection #{type} --file #{file}"
   end
 end
   
