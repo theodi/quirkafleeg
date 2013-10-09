@@ -1,12 +1,13 @@
 #!/usr/bin/env ruby
 
 if ARGV.length < 2
-  puts "Usage: dbimport <content_db_name> <asset_db_name>"
+  puts "Usage: dbimport <content_db_name> <asset_db_name> <host>"
   exit 1
 end
 
 CONTENT_DB = ARGV[0]
 ASSET_DB = ARGV[1]
+HOST = ARGV[2]
 
 exports = {
   :artefacts => ["artefact.json"],
@@ -29,7 +30,7 @@ exports.each do |type,files|
       db = CONTENT_DB
     end
     puts "Importing #{file}..."
-    system "mongoimport --db #{db} --collection #{type} --file #{file}"
+    system "mongoimport --host #{HOST} --db #{db} --collection #{type} --file #{file}"
   end
 end
   
