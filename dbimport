@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+if ARGV.length < 2
+  puts "Usage: dbimport <content_db_name> <asset_db_name> <host>"
+  exit 1
+end
+
+CONTENT_DB = ARGV[0]
+ASSET_DB = ARGV[1]
+HOST = ARGV[2]
+
+exports = {
+  :artefacts => ["artefact.json"],
+  :assets => ["asset.json"],
+  :editions => [
+      "casestudy.json",
+      "article.json",
+      "course.json",
+      "job.json",
+      "organization.json",
+      "person.json"
+    ]
+}
+
+exports.each do |type,files|
+  files.each do |file|
+    if type == :assets
+      db = ASSET_DB
+    else
+      db = CONTENT_DB
+    end
+    puts "Importing #{file}..."
+    system "mongoimport --host #{HOST} --db #{db} --collection #{type} --file #{file}"
+  end
+end
+  
+
+
+  
