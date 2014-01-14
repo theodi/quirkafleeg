@@ -16,6 +16,7 @@ echo "STATIC_DEV=http://static.${DOMAIN}" >> ${OUTFILE}
 echo "GOVUK_ASSET_ROOT=static.${DOMAIN}" >> ${OUTFILE}
 echo "PANOPTICON_USER='api'" >> ${OUTFILE}
 echo "PANOPTICON_PASSWORD='mysuperawesomepassword'" >> ${OUTFILE}
+echo "CONTENTAPI_DEFAULT_ROLE=odi" >> ${OUTFILE}
 
 cat ./rackspacecreds >> ${OUTFILE}
 cat ./mandrillcreds >> ${OUTFILE}
