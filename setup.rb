@@ -21,11 +21,7 @@ projects     = {
   'publisher' =>        'publisher',
   'asset-manager' =>    'asset-manager',
   'content_api' =>      'contentapi',
-  'people' =>           'people',
-  'frontend' =>         'private-frontend',
-  'frontend-news' =>    'news',
   'frontend-www' =>     'www',
-  'frontend-courses' => 'courses'
 }
 
 def colour text, colour
