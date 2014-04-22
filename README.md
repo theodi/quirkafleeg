@@ -27,7 +27,8 @@ Requirements
 * Homebrew
 * Ruby 1.9.3 installed via [RVM](http://rvm.io)
 * Pow installed from [pow.cx](http://pow.cx). [Anvil](http://anvilformac.com) is also useful.
-* MongoDB installed and running: `brew install mongodb; mongod`
+* MongoDB installed and running: `brew install mongodb ; mongod`
+* ElasticSearch: `brew install elasticsearch-0.20 ; echo 'alias es="elasticsearch -f -D es.config=/usr/local/opt/elasticsearch-0.20/config/elasticsearch.yml"' >> ~/.bashrc ; elasticsearch -f -D es.config=/usr/local/opt/elasticsearch-0.20/config/elasticsearch.yml`
 
 ### Linux 
 
