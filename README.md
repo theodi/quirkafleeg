@@ -1,4 +1,4 @@
-Quirkafleeg
+Quirkafleeg  
 ===========
 
 Project Quirkafleeg is the ODI's next-generation web publishing platform, mostly built 
@@ -31,7 +31,7 @@ Requirements
 
 ### Linux 
 
-* Stuff. Sam knows.
+* Stuff. Sam knows. Kind of.
 
 Perform a Quirkafleeg!
 ----------------------
