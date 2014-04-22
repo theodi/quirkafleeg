@@ -203,7 +203,7 @@ Dir.chdir("signon") do
   api_clients.each do |app|
 
     puts "%s %s" % [
-      green("Generating asset-manager bearer tokens for"),
+      green("Generating bearer tokens for"),
       red(app)
     ]
 
@@ -211,13 +211,14 @@ Dir.chdir("signon") do
       str = `rake api_clients:create[#{app},"#{app}@example.com",asset-manager,signin]`
       File.open('../oauthcreds', 'a') do |f|
         f << "#{app.upcase.gsub('-','_')}_ASSET_MANAGER_BEARER_TOKEN=#{bearer_token(str)}\n"
+        f << "#{app.upcase.gsub('-','_')}_API_CLIENT_BEARER_TOKEN=#{bearer_token(str)}\n"
       end
     rescue
       nil
     end
 
   end
-  
+
   # Generate bearer tokens for content API clients
 
   puts green("Generating content-api bearer tokens for frontends")
