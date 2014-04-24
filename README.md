@@ -4,7 +4,7 @@ Quirkafleeg
 Project Quirkafleeg is the ODI's next-generation web publishing platform, mostly built
 atop GDS's excellent work on gov.uk.
 
-At this point, it's mainly a single script that sets up a working collection of six gov.uk
+At this point, it's mainly a single script that sets up a working collection of seven gov.uk
 applications, which together let you write, review, and publish information onto the frontend
 site.
 
