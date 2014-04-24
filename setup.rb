@@ -22,6 +22,7 @@ projects     = {
   'asset-manager' =>    'asset-manager',
   'content_api' =>      'contentapi',
   'frontend-www' =>     'www',
+  'rummager' =>         'search'
 }
 
 def colour text, colour
@@ -80,7 +81,7 @@ def make_vhost ourname, port
     system command
   end
 end
-  
+
 puts green "We're going to grab all the actual applications we need."
 
 pwd = `pwd`.strip
@@ -101,8 +102,8 @@ projects.each_pair do |theirname, ourname|
       red(ourname)
     ]
     system "cd #{ourname} && git pull origin master && cd ../"
-  end    
-  
+  end
+
   puts "%s %s" % [
     green("Bundling"),
     red(ourname)
@@ -119,12 +120,12 @@ projects.each_pair do |theirname, ourname|
     if File.exists? "%s/Procfile" % [
       ourname
     ]
-  
+
       puts "%s %s" % [
         green("Generating upstart scripts for"),
         red(ourname)
       ]
-   
+
       Dir.chdir ourname.to_s do
         command = "rvm in . do rvmsudo bundle exec foreman export -a %s -u %s -p %d upstart /etc/init" % [
           ourname,
@@ -164,11 +165,11 @@ Dir.chdir("signon") do
   puts green "Setting up signonotron database..."
 
   system "rake db:migrate"
-  
+
   puts green "Make signonotron work in dev mode..."
 
   system "bundle exec ./script/make_oauth_work_in_dev"
-  
+
   apps = {
     'panopticon' => 'metadata management',
     'publisher' => 'content editing',
@@ -193,7 +194,7 @@ Dir.chdir("signon") do
     end
 
   end
-  
+
   # Generate bearer tokens for asset-manager clients
 
   api_clients = [
@@ -251,7 +252,12 @@ Dir.chdir("signon") do
       nil
     end
   end
-  
+
+end
+
+Dir.chrdir('search') do
+  puts green("Creating indices for rummager")
+  `RUMMAGER_INDEX=all bundle exec rake rummager:migrate_index`
 end
 
 `./make_env`

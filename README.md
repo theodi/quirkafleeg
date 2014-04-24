@@ -1,10 +1,10 @@
 Quirkafleeg  
 ===========
 
-Project Quirkafleeg is the ODI's next-generation web publishing platform, mostly built 
+Project Quirkafleeg is the ODI's next-generation web publishing platform, mostly built
 atop GDS's excellent work on gov.uk.
 
-At this point, it's mainly a single script that sets up a working collection of six gov.uk
+At this point, it's mainly a single script that sets up a working collection of seven gov.uk
 applications, which together let you write, review, and publish information onto the frontend
 site.
 
@@ -15,6 +15,7 @@ It uses:
 * panopticon
 * publisher
 * govuk_content_api
+* rummager (for search)
 * various frontend apps
 
 (currently it uses ODI forks for these, but once PRs are accepted it should work with the alphagov version)
@@ -28,9 +29,11 @@ Requirements
 * Ruby 1.9.3 installed via [RVM](http://rvm.io)
 * Pow installed from [pow.cx](http://pow.cx). [Anvil](http://anvilformac.com) is also useful.
 * MongoDB installed and running: `brew install mongodb ; mongod`
-* ElasticSearch: `brew install elasticsearch-0.20 ; echo 'alias es="elasticsearch -f -D es.config=/usr/local/opt/elasticsearch-0.20/config/elasticsearch.yml"' >> ~/.bashrc ; elasticsearch -f -D es.config=/usr/local/opt/elasticsearch-0.20/config/elasticsearch.yml`
+* ElasticSearch: `brew install elasticsearch-0.20 ; echo 'alias es="elasticsearch -f -D es.config=/usr/local/opt/elasticsearch-0.20/config/elasticsearch.yml"' >> ~/.bashrc ; elasticsearch -f -D es.config=/usr/local/opt/elasticsearch-0.20/config/elasticsearch.yml`\*
 
-### Linux 
+\* This will run the ElasticSearch service, so you'll need to configure it as a background process, or keep it running and run the setup stuff in a seperate window. You can always start ElasticSearch again using the alias `es`, which will be set up in your `.bashrc` file
+
+### Linux
 
 * Stuff. Sam knows. Kind of.
 
