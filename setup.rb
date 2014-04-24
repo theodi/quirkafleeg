@@ -22,6 +22,7 @@ projects     = {
   'asset-manager' =>    'asset-manager',
   'content_api' =>      'contentapi',
   'frontend-www' =>     'www',
+  'rummager' =>         'search'
 }
 
 def colour text, colour
