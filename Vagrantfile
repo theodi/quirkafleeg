@@ -34,7 +34,7 @@ Vagrant.configure("2") do |config|
         rs.flavor          = /1GB/
         rs.image           = /Precise/
         rs.public_key_path = "./.chef/id_rsa.pub"
-        rs.auth_url        = "https://lon.identity.api.rackspacecloud.com/v2.0"
+        rs.rackspace_region = :lon
       end
 
       config.vm.provision :shell, :inline => "curl -L https://www.opscode.com/chef/install.sh | bash"
@@ -68,7 +68,7 @@ Vagrant.configure("2") do |config|
 #      rs.flavor          = /1GB/
 #      rs.image           = /Precise/
 #      rs.public_key_path = "./.chef/id_rsa.pub"
-#      rs.auth_url        = "https://lon.identity.api.rackspacecloud.com/v2.0"
+#      rs.rackspace_region = :lon
 #    end
 #
 #    config.vm.provision :shell, :inline => "curl -L https://www.opscode.com/chef/install.sh | bash"
@@ -143,7 +143,7 @@ Vagrant.configure("2") do |config|
         rs.flavor          = /4GB/
         rs.image           = /Precise/
         rs.public_key_path = "./.chef/id_rsa.pub"
-        rs.auth_url        = "https://lon.identity.api.rackspacecloud.com/v2.0"
+        rs.rackspace_region = :lon
       end
 
       config.vm.provision :shell, :inline => "curl -L https://www.opscode.com/chef/install.sh | bash"
@@ -183,7 +183,7 @@ Vagrant.configure("2") do |config|
         rs.flavor          = /4GB/
         rs.image           = /Precise/
         rs.public_key_path = "./.chef/id_rsa.pub"
-        rs.auth_url        = "https://lon.identity.api.rackspacecloud.com/v2.0"
+        rs.rackspace_region = :lon
       end
 
       config.vm.provision :shell, :inline => "curl -L https://www.opscode.com/chef/install.sh | bash"
