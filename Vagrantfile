@@ -117,7 +117,9 @@ Vagrant.configure("2") do |config|
         chef.validation_client_name = "chef-validator"
         chef.validation_key_path    = ".chef/chef-validator.pem"
         chef.run_list               = chef.run_list = [
-            "recipe[odi-elasticsearch-node]"
+            "role[base]",
+            "role[chef-client]",
+            "recipe[odi-elasticsearch-node]",
         ]
       end
     end
