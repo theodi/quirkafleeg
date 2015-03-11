@@ -165,7 +165,7 @@ Dir.chdir("signon") do
 
   puts green "Setting up signonotron database..."
 
-  system "bundle exec rake db:migrate"
+  system "bundle exec rake db:create; bundle exec rake db:migrate"
 
   puts green "Make signonotron work in dev mode..."
 
