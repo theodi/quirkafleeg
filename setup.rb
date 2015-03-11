@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-require 'rvm'
 require 'dotenv'
 require 'erubis'
 
@@ -109,7 +108,10 @@ projects.each_pair do |theirname, ourname|
     red(ourname)
   ]
 
-  system "rvm in #{ourname} do bundle"
+  Dir.chdir ourname do
+    system "bundle"
+  end
+
   env_path = "%s/env" % [
     Dir.pwd,
   ]
@@ -127,7 +129,7 @@ projects.each_pair do |theirname, ourname|
       ]
 
       Dir.chdir ourname.to_s do
-        command = "rvm in . do rvmsudo bundle exec foreman export -a %s -u %s -p %d upstart /etc/init" % [
+        command = "sudo bundle exec foreman export -a %s -u %s -p %d upstart /etc/init" % [
           ourname,
           `whoami`.strip,
           port
@@ -160,11 +162,10 @@ def bearer_token(output)
 end
 
 Dir.chdir("signon") do
-  RVM.use! '.'
 
   puts green "Setting up signonotron database..."
 
-  system "rake db:migrate"
+  system "bundle exec rake db:migrate"
 
   puts green "Make signonotron work in dev mode..."
 
@@ -184,7 +185,7 @@ Dir.chdir("signon") do
     ]
 
     begin
-      str = `rake applications:create name=#{app} description="#{description}" home_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback" supported_permissions=signin`
+      str = `bundle exec rake applications:create name=#{app} description="#{description}" home_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback" supported_permissions=signin`
       File.open('../oauthcreds', 'a') do |f|
         f << "#{app.upcase.gsub('-','_')}_OAUTH_ID=#{oauth_id(str)}\n"
         f << "#{app.upcase.gsub('-','_')}_OAUTH_SECRET=#{oauth_secret(str)}\n"
@@ -209,7 +210,7 @@ Dir.chdir("signon") do
     ]
 
     begin
-      str = `rake api_clients:create[#{app},"#{app}@example.com",asset-manager,signin]`
+      str = `bundle exec rake api_clients:create[#{app},"#{app}@example.com",asset-manager,signin]`
       File.open('../oauthcreds', 'a') do |f|
         f << "#{app.upcase.gsub('-','_')}_ASSET_MANAGER_BEARER_TOKEN=#{bearer_token(str)}\n"
         f << "#{app.upcase.gsub('-','_')}_API_CLIENT_BEARER_TOKEN=#{bearer_token(str)}\n"
@@ -226,9 +227,9 @@ Dir.chdir("signon") do
 
   begin
     # Create a frontend application
-    str = `rake applications:create name=frontends description="Front end apps" home_uri="http://frontends.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://frontends.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback" supported_permissions=access_unpublished`
+    str = `bundle exec rake applications:create name=frontends description="Front end apps" home_uri="http://frontends.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://frontends.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback" supported_permissions=access_unpublished`
     # Generate a bearer token for frontends to access contentapi
-    str = `rake api_clients:create[frontends,"frontends@example.com",contentapi,access_unpublished]`
+    str = `bundle exec rake api_clients:create[frontends,"frontends@example.com",contentapi,access_unpublished]`
     File.open('../oauthcreds', 'a') do |f|
       f << "QUIRKAFLEEG_FRONTEND_CONTENTAPI_BEARER_TOKEN=#{bearer_token(str)}\n"
     end
@@ -239,7 +240,6 @@ Dir.chdir("signon") do
 
   puts green "We'll generate a couple of sample users for you. You can add more by doing something like:"
   puts red "$ cd signon"
-  puts red "$ rvm use ."
   puts red "$ GOVUK_APP_DOMAIN=#{ENV['GOVUK_APP_DOMAIN']} DEV_DOMAIN=#{ENV['DEV_DOMAIN']} bundle exec rake users:create name='Alice' email=alice@example.com applications=#{apps.keys.join(',')}"
 
   {
