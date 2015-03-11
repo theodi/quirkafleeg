@@ -185,7 +185,7 @@ Dir.chdir("signon") do
     ]
 
     begin
-      str = `bundle exec rake applications:create name=#{app} description="#{description}" home_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback" supported_permissions=signin`
+      str = `bundle exec rake applications:create name=#{app} description="#{description}" home_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}" redirect_uri="http://#{app}.#{ENV['GOVUK_APP_DOMAIN']}/auth/gds/callback" supported_permissions=signin,access_unpublished`
       File.open('../oauthcreds', 'a') do |f|
         f << "#{app.upcase.gsub('-','_')}_OAUTH_ID=#{oauth_id(str)}\n"
         f << "#{app.upcase.gsub('-','_')}_OAUTH_SECRET=#{oauth_secret(str)}\n"
