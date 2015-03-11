@@ -255,7 +255,7 @@ Dir.chdir("signon") do
 
 end
 
-Dir.chrdir('search') do
+Dir.chdir('search') do
   puts green("Creating indices for rummager")
   `RUMMAGER_INDEX=all bundle exec rake rummager:migrate_index`
 end
