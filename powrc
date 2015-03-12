@@ -1,3 +1,5 @@
+export DEV_DOMAIN=dev
+
 if [ -f "$rvm_path/scripts/rvm" ]; then
 	source "$rvm_path/scripts/rvm"
 	rvm use .
