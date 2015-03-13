@@ -257,10 +257,10 @@ end
 
 Dir.chdir('search') do
   puts green("Creating indices for rummager")
-  `RUMMAGER_INDEX=all bundle exec rake rummager:migrate_index`
+  system 'RUMMAGER_INDEX=all bundle exec rake rummager:migrate_index'
 end
 
-`./make_env`
+system './make_env'
 
 # Seed data in panopticon - tags, really
 Dir.chdir("panopticon") do
