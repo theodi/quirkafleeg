@@ -263,7 +263,9 @@ end
 `./make_env`
 
 # Seed data in panopticon - tags, really
-system "rvm in panopticon do rake db:seed"
+Dir.chdir("panopticon") do
+  system "bundle exec rake db:seed"
+end
 
 projects.each_pair do |theirname, ourname|
   if osx?
